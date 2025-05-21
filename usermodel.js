@@ -8,8 +8,8 @@ const userSchema=mongoose.Schema({
         type:String,
         required:true
     }
-})
+},{timestamps:true})
 
-const usermodel=mongoose.model('user')
+const usermodel=mongoose.model('user',userSchema)
 
 module.exports=usermodel;

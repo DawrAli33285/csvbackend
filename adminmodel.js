@@ -9,9 +9,9 @@ const adminSchema=mongoose.Schema({
         type:String,
         required:true
     }
-})
+},{timestamps:true})
 
 
-const adminModel=mongoose.model('admin')
+const adminModel=mongoose.model('admin',adminSchema)
 
 module.exports=adminModel
