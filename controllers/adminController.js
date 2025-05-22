@@ -11,7 +11,9 @@ const path = require('path');
 const axios = require('axios');
 const adminModel = require("../adminmodel");
 
-const outputDir = path.join(__dirname, '../tmp/public/files');
+
+
+const outputDir ="/tmp/public/files/images"
 
 
 module.exports.adminLogin = async (req, res) => {
@@ -47,7 +49,7 @@ module.exports.registerAdmin = async (req, res) => {
                 error: "User already exists"
             })
         }
-        let admin = await adminModel.create({ email, password })
+        let admin = await adminModelfa.create({ email, password })
         return res.status(200).json({
             admin
         })
