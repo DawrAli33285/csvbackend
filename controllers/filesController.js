@@ -11,16 +11,17 @@ const saveFile = async (req, res) => {
 
         const token = req.headers.authorization?.split(' ')[1];
         let admin=await adminmodel.findOne({})
-       
+  
         if (!token) return res.status(400).json({ error: "Unauthorized" });
 
         const decoded = jwt.verify(token, secretKey);
         console.log(decoded.id)
         let user = await usermodel.findById(decoded.id)
-
-        const filePath="/tmp/public/files/images"
-        // const filePath = path.join(__dirname, '../tmp/public/files', req.file.originalname);
-
+        const basePath = "/tmp/public/files/images";
+        const fileName = `${Date.now()}-${req.file.originalname}`;
+        const filePath = path.join(basePath, fileName);
+        // const filePath="/tmp/public/files"
+      
         const dir = path.dirname(filePath);
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });

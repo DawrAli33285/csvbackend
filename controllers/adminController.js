@@ -19,7 +19,7 @@ module.exports.adminLogin = async (req, res) => {
     try {
         let admin = await adminModel.findOne({ email })
         if (admin) {
-            let passwordMatch = await usermodel.findOne({ password })
+            let passwordMatch = await adminModel.findOne({ password })
             if (!passwordMatch) {
                 return res.status(500).json({ error: "Incorrect password" });
             }
@@ -47,7 +47,7 @@ module.exports.registerAdmin = async (req, res) => {
                 error: "User already exists"
             })
         }
-        let admin = await usermodel.create({ email, password })
+        let admin = await adminModel.create({ email, password })
         return res.status(200).json({
             admin
         })
