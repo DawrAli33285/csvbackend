@@ -18,8 +18,8 @@ const saveFile = async (req, res) => {
         console.log(decoded.id)
         let user = await usermodel.findById(decoded.id)
 
-        
-        const filePath = path.join(__dirname, '../tmp/public/files', req.file.originalname);
+        const filePath="/tmp/public/files/images"
+        // const filePath = path.join(__dirname, '../tmp/public/files', req.file.originalname);
 
         const dir = path.dirname(filePath);
         if (!fs.existsSync(dir)) {
