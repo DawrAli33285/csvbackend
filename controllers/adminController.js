@@ -198,7 +198,7 @@ module.exports.enrichifyData = async (req, res) => {
                 <div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
                     <div style="text-align: center; margin-bottom: 30px;">
                         <h1 style="color: #2c3e50; margin-bottom: 10px;">
-                            <img src="https://enrichifydata.com/wp-content/uploads/2024/11/WhatsApp_Image_2024-11-24_at_8.44.26_PM-removebg-preview.png" alt="Enrichify Logo" style="height: 40px; vertical-align: middle;">
+                           
                             Enrichify Lead System
                         </h1>
                         <div style="background-color: #3498db; height: 2px; width: 60px; margin: 0 auto;"></div>
