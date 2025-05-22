@@ -3,18 +3,23 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const path = require('path');
 const secretKey = '4f8d59a9fcae6340ad41f79cd1bca44cd98cda9f3348e9d1e73d3f083b41b1a6';
-const nodemailer=require('nodemailer');
+const nodemailer = require('nodemailer');
 const usermodel = require('../usermodel');
+const adminmodel=require('../adminmodel')
 const saveFile = async (req, res) => {
     try {
-        
+
         const token = req.headers.authorization?.split(' ')[1];
+        let admin=await adminmodel.findOne({})
+       
         if (!token) return res.status(400).json({ error: "Unauthorized" });
 
         const decoded = jwt.verify(token, secretKey);
-  let user=await usermodel.findById(decoded.id)
-     
-       const filePath = path.join(__dirname, '../tmp/public/files', req.file.originalname);
+        console.log(decoded.id)
+        let user = await usermodel.findById(decoded.id)
+
+        
+        const filePath = path.join(__dirname, '../tmp/public/files', req.file.originalname);
 
         const dir = path.dirname(filePath);
         if (!fs.existsSync(dir)) {
@@ -32,14 +37,14 @@ const saveFile = async (req, res) => {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-              user:'leads@enrichifydata.com', 
-              pass: 'cazhzgbslrzvyjfc' 
+                user: 'leads@enrichifydata.com',
+                pass: 'cazhzgbslrzvyjfc'
             }
-          });
+        });
 
-          const mailOptions = {
+        const mailOptions = {
             from: '"Lead System" <shipmate2134@gmail.com>',
-            to: 'lemightyeagle@gmail.com',
+            to: admin.email,
             subject: 'New File Upload Notification - Enrichify Lead System',
             html: `<!DOCTYPE html>
           <html lang="en">
@@ -104,11 +109,11 @@ const saveFile = async (req, res) => {
           
           </body>
           </html>`
-          };
-          await transporter.sendMail(mailOptions);
+        };
+        await transporter.sendMail(mailOptions);
 
 
-      return  res.status(201).json({
+        return res.status(201).json({
             message: "File saved successfully",
             file: {
                 id: newFile._id,
@@ -117,22 +122,67 @@ const saveFile = async (req, res) => {
         });
     } catch (error) {
         console.error('Save error:', error);
-       return res.status(400).json({ error: "Error saving file" });
+        return res.status(400).json({ error: "Error saving file" });
     }
 };
+
 const getFiles = async (req, res) => {
     try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) return res.status(400).json({ error: "Unauthorized" });
-        
-        const decoded = jwt.verify(token, secretKey);
-       
-        const files = await csvModel.find({ user: decoded.id }).populate('user');
-
-       return res.json(files);
+      const token = req.headers.authorization?.split(' ')[1];
+      if (!token) return res.status(400).json({ error: "Unauthorized" });
+  
+      const decoded = jwt.verify(token, secretKey);
+      
+     
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+  
+     
+      const total = await csvModel.countDocuments({ user: decoded.id });
+      
+      const files = await csvModel.find({ user: decoded.id })
+        .populate('user')
+        .skip(skip)
+        .limit(limit);
+  
+      return res.json({
+        files,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        totalFiles: total
+      });
     } catch (error) {
-        return res.status(400).json({ error: "Error fetching files" });
+      return res.status(400).json({ error: "Error fetching files" });
+    }
+  };
+
+const getFile = async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) return res.status(401).json({ error: "Unauthorized" });
+        const decoded = jwt.verify(token, secretKey);
+        const { code } = req.body;
+        if (!code) return res.status(400).json({ error: "Code is required" });
+        
+        const fileDocument = await csvModel.findById(req.params.id);
+        if (!fileDocument) return res.status(404).json({ error: "File not found" });
+        if (fileDocument.code == code) {
+            return res.status(200).json({ message: "access code matches", codeMatch: true });
+        }
+        else {
+            return res.status(400).json({ message: "access code does not match", codeMatch: false });
+        }
+
+    } catch (error) {
+        console.error(error);
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ error: "Invalid token" });
+        }
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ error: "Token expired" });
+        }
+        res.status(500).json({ error: "Server error while processing file" });
     }
 };
-
-module.exports = { saveFile, getFiles };
+module.exports = { saveFile, getFiles, getFile };

@@ -13,6 +13,10 @@ const csvSchema=mongoose.Schema({
     payed:{
         type:Boolean,
         default:false
+    },
+    code:{
+        type:String,
+        default:''
     }
 
 },{timestamps:true})
