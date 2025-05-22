@@ -87,6 +87,9 @@ module.exports.enrichifyData = async (req, res) => {
     let { file, id } = req.params;
 
     try {
+        if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true });  
+          }
         const response = await fetch(`https://csvbackend.vercel.app/files/${file}`);
         const fileData = await csvModel.findOne({ _id: id }).populate('user')
         if (!response.ok) throw new Error('Failed to fetch file');
