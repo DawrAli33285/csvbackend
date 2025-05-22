@@ -85,7 +85,7 @@ module.exports.enrichifyData = async (req, res) => {
     let { file, id } = req.params;
 
     try {
-        const response = await fetch(`http://localhost:5000/files/${file}`);
+        const response = await fetch(`https://csvbackend.vercel.app/files/${file}`);
         const fileData = await csvModel.findOne({ _id: id }).populate('user')
         if (!response.ok) throw new Error('Failed to fetch file');
         const transporter = nodemailer.createTransport({
@@ -223,7 +223,7 @@ module.exports.enrichifyData = async (req, res) => {
                         </div>
             
                         <div style="text-align: center; margin-top: 30px;">
-                            <a href="http://localhost:3000/paidfileaccess/${id}/${verificationCode}" 
+                            <a href="https://csvuploadfrontend.vercel.app/paidfileaccess/${id}/${verificationCode}" 
                                style="background-color: #3498db; color: #ffffff; padding: 12px 25px; 
                                       text-decoration: none; border-radius: 4px; display: inline-block;
                                       font-weight: bold;">
