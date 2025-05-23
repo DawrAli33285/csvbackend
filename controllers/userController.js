@@ -1,5 +1,6 @@
 const User = require('../usermodel');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 const secretKey = '4f8d59a9fcae6340ad41f79cd1bca44cd98cda9f3348e9d1e73d3f083b41b1a6';
 const generateToken = (id) => {
     return jwt.sign({ id }, secretKey, { expiresIn: '30d' });
