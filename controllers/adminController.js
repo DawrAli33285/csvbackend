@@ -12,8 +12,10 @@ const axios = require('axios');
 const adminModel = require("../adminmodel");
 
 
-
-const outputDir ="/tmp/public/files/images"
+// const outputDir ="/tmp/public/files/images"
+const outputDir = process.env.NODE_ENV === 'production' 
+  ? '/tmp/files' 
+  : './local-files';
 
 
 module.exports.adminLogin = async (req, res) => {
