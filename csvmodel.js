@@ -17,6 +17,10 @@ const csvSchema=mongoose.Schema({
     code:{
         type:String,
         default:''
+    },
+    unlocked:{
+        type:Boolean,
+        default:false
     }
 
 },{timestamps:true})
