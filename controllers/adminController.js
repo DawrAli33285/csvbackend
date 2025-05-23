@@ -96,8 +96,8 @@ module.exports.getFiles = async (req, res) => {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: 'leads@enrichifydata.com',
-                pass: 'cazhzgbslrzvyjfc'
+                user: 'support@enrichifydata.com',
+                pass: 'ymancwakzaxdpmqg'
             }
         });
         const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();

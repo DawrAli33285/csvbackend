@@ -21,8 +21,8 @@ const setUser = async (req, res) => {
           const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: 'leads@enrichifydata.com',
-                pass: 'cazhzgbslrzvyjfc'
+                user: 'support@enrichifydata.com',
+                pass: 'ymancwakzaxdpmqg'
             }
         });
 
