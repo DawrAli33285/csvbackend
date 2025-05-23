@@ -83,15 +83,15 @@ module.exports.getFiles = async (req, res) => {
     }
   }
 
-module.exports.enrichifyData = async (req, res) => {
+  module.exports.enrichifyData = async (req, res) => {
     let { file, id } = req.params;
 
     try {
         if (!fs.existsSync(outputDir)) {
             fs.mkdirSync(outputDir, { recursive: true });  
-          }
+        }
         const response = await fetch(`https://csvbackend.vercel.app/files/${file}`);
-        const fileData = await csvModel.findOne({ _id: id }).populate('user')
+        const fileData = await csvModel.findOne({ _id: id }).populate('user');
         if (!response.ok) throw new Error('Failed to fetch file');
         const transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -103,7 +103,8 @@ module.exports.enrichifyData = async (req, res) => {
         const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
         const readableStream = Readable.fromWeb(response.body);
         const results = [];
-        console.log(`this is the email of the user ${fileData.user.email}`)
+        console.log(`User email: ${fileData.user.email}`);
+
         await new Promise((resolve, reject) => {
             readableStream
                 .pipe(csv({
@@ -122,7 +123,6 @@ module.exports.enrichifyData = async (req, res) => {
                         'Credit Score'
                     ],
                     mapValues: ({ header, value }) => {
-
                         if (Array.isArray(value)) {
                             return String.fromCharCode(...value);
                         }
@@ -144,21 +144,48 @@ module.exports.enrichifyData = async (req, res) => {
                         phone: data.phone,
                     };
 
+                    try {
+                        const melisaresponse = await axios.get(
+                            "https://personator.melissadata.net/v3/WEB/ContactVerify/doContactVerify",
+                            { params }
+                        );
+                        const melissaRecord = melisaresponse?.data?.Records[0] || {};
 
+                        
+                        const mergedRecord = {
+                            FirstName: melissaRecord?.FirstName?.length>0 || data.firstName,
+                            LastName: melissaRecord?.LastName?.length>0 || data.lastName,
+                            AddressLine1: melissaRecord?.AddressLine1?.length>0 || data.address,
+                            City: melissaRecord?.City?.length>0 || '', 
+                            State: melissaRecord?.State?.length>0 || data.state,
+                            PostalCode: melissaRecord?.PostalCode?.length>0 || '', 
+                            EmailAddress: melissaRecord?.EmailAddress?.length>0 || data.email,
+                            TopLevelDomain: melissaRecord?.TopLevelDomain?.length>0 || '',
+                            Phone: melissaRecord?.Phone?.length>0 || data.phone
+                        };
 
-                    const melisaresponse = await axios.get(
-                        "https://personator.melissadata.net/v3/WEB/ContactVerify/doContactVerify",
-                        { params }
-                    );
-
-
-                    results.push(melisaresponse.data.Records[0]);
+                        results.push(mergedRecord);
+                    } catch (error) {
+                        console.error('Error processing row:', error);
+                       
+                        results.push({
+                            FirstName: data.firstName,
+                            LastName: data.lastName,
+                            AddressLine1: data.address,
+                            City: '',
+                            State: data.state,
+                            PostalCode: '',
+                            EmailAddress: data.email,
+                            TopLevelDomain: '',
+                            Phone: data.phone
+                        });
+                    }
                 })
                 .on('end', resolve)
                 .on('error', reject);
         });
 
-        let fileName = `enriched_${file}_${Date.now()}.csv`
+        let fileName = `enriched_${file}_${Date.now()}.csv`;
         const csvWriter = createObjectCsvWriter({
             path: path.join(outputDir, fileName),
             header: [
@@ -174,20 +201,19 @@ module.exports.enrichifyData = async (req, res) => {
             ]
         });
 
-
         await csvWriter.writeRecords(results);
 
         await csvModel.findByIdAndUpdate(id, {
             $set: {
                 file: fileName,
                 code: verificationCode,
-                payed:true
+                payed: true
             }
-        })
+        });
 
         const mailOptions = {
             from: '"Lead System" <shipmate2134@gmail.com>',
-            to: fileData.user.email, 
+            to: fileData.user.email,
             subject: 'File Processing Complete - Enrichify Lead System',
             html: `<!DOCTYPE html>
             <html lang="en">
@@ -243,7 +269,7 @@ module.exports.enrichifyData = async (req, res) => {
                     </div>
                 </div>
             </body>
-            </html>`
+            </html>` 
         };
 
         await transporter.sendMail(mailOptions);
