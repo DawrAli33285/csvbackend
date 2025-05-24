@@ -333,7 +333,7 @@ module.exports.updateFile = async (req, res) => {
  
     try {
         const { id } = req.params;
-        let file = await csvModel.findOne({ _id: id });
+        let file = await csvModel.findOne({ _id: id }).populate('user');
 
        
         if (!id) {
