@@ -12,7 +12,11 @@ const app = express();
 app.use(cors());
 app.use(express.json()); 
 
-app.use('/files', express.static('/tmp/files'));
+const basePath = process.env.NODE_ENV === 'production' 
+  ? '/tmp/files'  // Correct production path
+  : './local-files';  // Development path
+
+app.use('/files', express.static(basePath));
 
 
 app.use("/api/user", userRoutes);
