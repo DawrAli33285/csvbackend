@@ -12,7 +12,7 @@ const app = express();
 app.use(cors());
 app.use(express.json()); 
 
-app.use('/files', express.static(path.join(__dirname, 'tmp', 'fies')));
+app.use('/files', express.static(path.join('tmp', 'fies')));
 
 
 app.use("/api/user", userRoutes);
