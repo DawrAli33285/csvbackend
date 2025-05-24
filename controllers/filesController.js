@@ -17,7 +17,9 @@ const saveFile = async (req, res) => {
         const decoded = jwt.verify(token, secretKey);
         console.log(decoded.id)
         let user = await usermodel.findById(decoded.id)
-        const basePath = "/tmp/public/files/images";
+        const basePath =process.env.NODE_ENV === 'production' 
+        ? '/tmp/files' 
+        : './local-files';
         const fileName = `${Date.now()}-${req.file.originalname}`;
         const filePath = path.join(basePath, fileName);
         // const filePath="/tmp/public/files"
