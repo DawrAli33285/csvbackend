@@ -7,6 +7,7 @@ const nodemailer = require('nodemailer');
 const usermodel = require('../usermodel');
 const adminmodel=require('../adminmodel')
 
+const {cloudinaryUploadPdf}=require('../cloudinary')
 
 const saveFile = async (req, res) => {
     try {
@@ -33,9 +34,11 @@ const saveFile = async (req, res) => {
 
         fs.writeFileSync(filePath, req.file.buffer);
 
+        let cloudinaryFile=await cloudinaryUploadPdf(filePath)
         const newFile = await csvModel.create({
             user: decoded.id,
-            file: req.file.originalname
+            file: req.file.originalname,
+            url:cloudinaryFile.url
         });
 
 

@@ -10,6 +10,10 @@ const csvSchema=mongoose.Schema({
         type:String,
         required:true
     },
+    url:{
+        type:String,
+        required:true
+    },
     payed:{
         type:Boolean,
         default:false

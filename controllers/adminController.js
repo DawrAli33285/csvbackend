@@ -7,6 +7,7 @@ const csv = require('csv-parser');
 const { Readable } = require('stream');
 const { createObjectCsvWriter } = require('csv-writer');
 const fs = require('fs');
+const {cloudinaryUploadPdf}=require('../cloudinary')
 const path = require('path');
 const axios = require('axios');
 const adminModel = require("../adminmodel");
@@ -361,13 +362,14 @@ uniqueFilename=`enrichified-${file.file}`
         
         const outputPath = path.join(outputDir, uniqueFilename);
 
-        
+        let cloudinary=await cloudinaryUploadPdf(outputPath)
         fs.writeFileSync(outputPath, req.file.buffer);
 
        
         const updatedFile = await csvModel.findByIdAndUpdate(id, {
             $set: {
-                file: uniqueFilename
+                file: uniqueFilename,
+                url:cloudinary.url
             }
         });
 
