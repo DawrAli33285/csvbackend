@@ -14,7 +14,7 @@ app.use(express.json());
 
 // app.use('/files', express.static(path.join(__dirname, 'tmp', 'public', 'files')));
 if (process.env.NODE_ENV === 'development') {
-    app.use('/files', express.static(path.join(__dirname, 'tmp', 'public', 'files')));
+    app.use('/files', express.static('/tmp/files'));
   } else {
   
     app.get('/files/:filename', async (req, res) => {
