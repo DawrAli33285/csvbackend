@@ -12,20 +12,8 @@ const app = express();
 app.use(cors());
 app.use(express.json()); 
 
-// app.use('/files', express.static(path.join(__dirname, 'tmp', 'public', 'files')));
-if (process.env.NODE_ENV === 'development') {
-    app.use('/files', express.static('/tmp/files'));
-  } else {
-  
-    app.get('/files/:filename', async (req, res) => {
-      try {
-        const filePath = path.join('/tmp', req.params.filename);
-        res.sendFile(filePath);
-      } catch (error) {
-        res.status(404).send('File not found');
-      }
-    });
-  }
+app.use('/files', express.static(path.join(__dirname, 'tmp', 'fies')));
+
 
 app.use("/api/user", userRoutes);
 app.use("/api/files",fileRoutes)
