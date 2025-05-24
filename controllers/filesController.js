@@ -20,21 +20,31 @@ const saveFile = async (req, res) => {
         const decoded = jwt.verify(token, secretKey);
         console.log(decoded.id)
         let user = await usermodel.findById(decoded.id)
-        const basePath =process.env.NODE_ENV === 'production' 
-        ? '/tmp/files' 
-        : './local-files';
-        const fileName = `${Date.now()}-${req.file.originalname}`;
-        const filePath = path.join(basePath, fileName);
-        // const filePath="/tmp/public/files"
-      
-        const dir = path.dirname(filePath);
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
+        const basePath = process.env.NODE_ENV === 'production' 
+      ? '/tmp/files'
+      : path.join(__dirname, 'local-files'); // Use absolute path
 
-        fs.writeFileSync(filePath, req.file.buffer);
+    // Ensure base directory exists
+    if (!fs.existsSync(basePath)) {
+      fs.mkdirSync(basePath, { recursive: true });
+    }
 
-        let cloudinaryFile=await cloudinaryUploadPdf(filePath)
+    // Sanitize filename
+    const sanitizeFilename = (name) => name.replace(/[^a-zA-Z0-9-_\.]/g, '_');
+    const fileName = `${Date.now()}-${sanitizeFilename(req.file.originalname)}`;
+    const filePath = path.join(basePath, fileName);
+
+    // Save file
+    fs.writeFileSync(filePath, req.file.buffer);
+
+    // Verify file write
+    if (!fs.existsSync(filePath)) {
+      throw new Error('File write failed');
+    }
+
+    // Upload to Cloudinary
+    const cloudinaryFile = await cloudinaryUploadPdf(filePath);
+     
         const newFile = await csvModel.create({
             user: decoded.id,
             file: req.file.originalname,
@@ -170,7 +180,7 @@ await transporter.sendMail(usermailOptions)
             }
         });
     } catch (error) {
-        console.error('Save error:', error);
+        console.error('Save error:', error.message);
         return res.status(400).json({ error: "Error saving file" });
     }
 };

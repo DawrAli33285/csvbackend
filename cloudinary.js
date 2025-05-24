@@ -1,7 +1,7 @@
 const cloudinary = require('cloudinary').v2;
 const path=require('path')
 const fs=require('fs')
-// Configuration 
+
 cloudinary.config({
   cloud_name:"dbjwbveqn",
   api_key: "774241215571685",
@@ -10,18 +10,23 @@ cloudinary.config({
 
 
 
-module.exports.cloudinaryUploadPdf=async(filetoUpload)=>{
-    try{
-      const dirPathnew = '/tmp/public/files/pdf';
-      console.log(dirPathnew)
-     const data=await cloudinary.uploader.upload(path.join(dirPathnew, filetoUpload),{
-         resource_type:'auto'
-     })
+module.exports.cloudinaryUploadPdf = async (filePath) => { 
+    try {
      
-      return {
-        url:data.secure_url
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
       }
-  }catch(e){
-  return e
-  }
-  }
+  
+      const data = await cloudinary.uploader.upload(filePath, { 
+        resource_type: 'auto',
+        folder: process.env.NODE_ENV === 'production' ? 'prod' : 'dev'
+      });
+      
+      return {
+        url: data.secure_url
+      };
+    } catch(e) {
+      console.error('Cloudinary upload error:', e);
+      throw new Error('File upload failed');
+    }
+  };

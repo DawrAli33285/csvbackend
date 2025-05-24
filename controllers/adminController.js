@@ -15,9 +15,8 @@ const adminModel = require("../adminmodel");
 
 // const outputDir ="/tmp/public/files/images"
 const outputDir = process.env.NODE_ENV === 'production' 
-  ? '/tmp/files' 
-  : './local-files';
-
+  ? '/tmp/files'
+  : path.join(__dirname, 'local-files');
 
 module.exports.adminLogin = async (req, res) => {
     let { email, password } = req.body;
@@ -329,153 +328,156 @@ return res.status(200).json({
     }
 }
 
-
 module.exports.updateFile = async (req, res) => {
- 
     try {
-        const { id } = req.params;
-        let file = await csvModel.findOne({ _id: id }).populate('user');
-
-       
-        if (!id) {
-            return res.status(400).json({ error: "Missing file ID" });
+      const { id } = req.params;
+      const file = await csvModel.findOne({ _id: id }).populate('user');
+  
+      // Validation checks
+      if (!id) return res.status(400).json({ error: "Missing file ID" });
+      if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+      if (!file) return res.status(404).json({ error: "File not found" });
+  
+      // Ensure output directory exists
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
+  
+      // Sanitize filename
+      const sanitizeFilename = (name) => name.replace(/[^a-zA-Z0-9-_.]/g, '_');
+      let uniqueFilename = file.file.includes('enrichified') 
+        ? sanitizeFilename(file.file)
+        : `enrichified-${sanitizeFilename(file.file)}`;
+  
+      const outputPath = path.join(outputDir, uniqueFilename);
+  
+      // 1. Write file first
+      fs.writeFileSync(outputPath, req.file.buffer);
+      
+      // Verify file creation
+      if (!fs.existsSync(outputPath)) {
+        throw new Error('File write failed');
+      }
+  
+      // 2. Upload to Cloudinary
+      const cloudinaryResponse = await cloudinaryUploadPdf(outputPath);
+  
+      // 3. Update database
+      const updatedFile = await csvModel.findByIdAndUpdate(id, {
+        $set: {
+          file: uniqueFilename,
+          url: cloudinaryResponse.url
         }
-
-        
-        if (!req.file) {
-            return res.status(400).json({ error: "No file uploaded" });
+      }, { new: true });
+  
+      // 4. Send notification email
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'support@enrichifydata.com',
+          pass: 'ymancwakzaxdpmqg'
         }
-
-    
-        if (!fs.existsSync(outputDir)) {
-           
-            fs.mkdirSync(outputDir, { recursive: true });  
-        }
-        let uniqueFilename ;;
-        if(file.file.includes('enrichified')){
-uniqueFilename=`${file.file}`
-        }else{
-uniqueFilename=`enrichified-${file.file}`
-        }
-    
-
-        
-        const outputPath = path.join(outputDir, uniqueFilename);
-
-        let cloudinary=await cloudinaryUploadPdf(outputPath)
-        fs.writeFileSync(outputPath, req.file.buffer);
-
-       
-        const updatedFile = await csvModel.findByIdAndUpdate(id, {
-            $set: {
-                file: uniqueFilename,
-                url:cloudinary.url
-            }
-        });
-
-        console.log(updatedFile)
-        if (!updatedFile) {
-            fs.unlinkSync(outputPath); 
-            return res.status(404).json({ error: "File not found" });
-        }
-
-
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: 'support@enrichifydata.com',
-                pass: 'ymancwakzaxdpmqg'
-            }
-        });
-        
-        
-        
-        const mailOptions = {
-            from: '"Lead System" <shipmate2134@gmail.com>',
-            to: file.user.email,
-            subject: 'File Processing Complete - Enrichify Lead System',
-            html: `<!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>File Access</title>
-            </head>
-            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333; max-width: 800px; margin: 0 auto;">
-           div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
-    <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #2c3e50; margin-bottom: 10px;">
-            Enrichify Lead System
-        </h1>
-        <div style="background-color: #3498db; height: 2px; width: 60px; margin: 0 auto;"></div>
-    </div>
-
-    <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <h2 style="color: #2c3e50; margin-bottom: 25px;">Your File is Ready</h2>
-        
-        <p style="margin-bottom: 20px;">Hi there,</p>
-        
-        <p style="margin-bottom: 20px;">Great news! Your enriched file has been successfully processed and re-uploaded to your Enrichify account.</p>
-
-        <p style="margin-bottom: 20px; font-weight: 500; color: #2c3e50;">
-            To ensure secure delivery, the file is locked and will only be available for download once your invoice is cleared. 
-            Once confirmed, we will send you a unique short code to unlock and download the file.
-        </p>
-
-        <div style="margin: 25px 0; padding: 20px; background-color: #f8f9fa; border-radius: 6px;">
-            <h3 style="color: #2c3e50; margin-bottom: 15px;">How to Access Your File:</h3>
-            <ol style="margin-left: 20px; color: #34495e;">
-                <li style="margin-bottom: 12px;"><strong>Complete Payment</strong><br>
-                Settle your invoice through your account or payment link provided</li>
-                
-                <li style="margin-bottom: 12px;"><strong>Receive Your Unlock Code</strong><br>
-                Once the invoice is cleared, we'll send you a one-time short code</li>
-                
-                <li><strong>Download Your File</strong><br>
-                Log in to your dashboard, enter the short code, and download securely</li>
-            </ol>
-        </div>
-
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="https://csvuploadfrontend.vercel.app/dashboard" 
-               style="background-color: #3498db; color: #ffffff; padding: 12px 25px; 
-                      text-decoration: none; border-radius: 4px; display: inline-block;
-                      font-weight: bold; transition: all 0.3s ease;"
-               onmouseover="this.style.backgroundColor='#2980b9'" 
-               onmouseout="this.style.backgroundColor='#3498db'">
-                👉 Access Dashboard
-            </a>
-        </div>
-
-        <p style="margin-bottom: 20px; color: #7f8c8d; font-size: 0.95em;">
-            If you've already completed payment and haven't received your code yet, 
-            please reply to this email and we'll get it to you right away.
-        </p>
-    </div>
-
-    <div style="margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 0.9em;">
-        <p style="margin-bottom: 10px;">Thank you for choosing Enrichify — we look forward to helping you make the most of your data.</p>
-        <p>© ${new Date().getFullYear()} Enrichify Lead System. All rights reserved.</p>
-    </div>
+      });
+  
+      const mailOptions = {
+        from: '"Lead System" <shipmate2134@gmail.com>',
+        to: file.user.email,
+        subject: 'File Processing Complete - Enrichify Lead System',
+        html: `<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>File Access</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333; max-width: 800px; margin: 0 auto;">
+       div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
+<div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="color: #2c3e50; margin-bottom: 10px;">
+        Enrichify Lead System
+    </h1>
+    <div style="background-color: #3498db; height: 2px; width: 60px; margin: 0 auto;"></div>
 </div>
-            </body>
-            </html>` 
-        };
-        
-        await transporter.sendMail(mailOptions);
 
-        return res.status(200).json({
-            message: "File saved and database updated successfully"
-        });
+<div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <h2 style="color: #2c3e50; margin-bottom: 25px;">Your File is Ready</h2>
+    
+    <p style="margin-bottom: 20px;">Hi there,</p>
+    
+    <p style="margin-bottom: 20px;">Great news! Your enriched file has been successfully processed and re-uploaded to your Enrichify account.</p>
 
+    <p style="margin-bottom: 20px; font-weight: 500; color: #2c3e50;">
+        To ensure secure delivery, the file is locked and will only be available for download once your invoice is cleared. 
+        Once confirmed, we will send you a unique short code to unlock and download the file.
+    </p>
+
+    <div style="margin: 25px 0; padding: 20px; background-color: #f8f9fa; border-radius: 6px;">
+        <h3 style="color: #2c3e50; margin-bottom: 15px;">How to Access Your File:</h3>
+        <ol style="margin-left: 20px; color: #34495e;">
+            <li style="margin-bottom: 12px;"><strong>Complete Payment</strong><br>
+            Settle your invoice through your account or payment link provided</li>
+            
+            <li style="margin-bottom: 12px;"><strong>Receive Your Unlock Code</strong><br>
+            Once the invoice is cleared, we'll send you a one-time short code</li>
+            
+            <li><strong>Download Your File</strong><br>
+            Log in to your dashboard, enter the short code, and download securely</li>
+        </ol>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="https://csvuploadfrontend.vercel.app/dashboard" 
+           style="background-color: #3498db; color: #ffffff; padding: 12px 25px; 
+                  text-decoration: none; border-radius: 4px; display: inline-block;
+                  font-weight: bold; transition: all 0.3s ease;"
+           onmouseover="this.style.backgroundColor='#2980b9'" 
+           onmouseout="this.style.backgroundColor='#3498db'">
+            👉 Access Dashboard
+        </a>
+    </div>
+
+    <p style="margin-bottom: 20px; color: #7f8c8d; font-size: 0.95em;">
+        If you've already completed payment and haven't received your code yet, 
+        please reply to this email and we'll get it to you right away.
+    </p>
+</div>
+
+<div style="margin-top: 30px; text-align: center; color: #7f8c8d; font-size: 0.9em;">
+    <p style="margin-bottom: 10px;">Thank you for choosing Enrichify — we look forward to helping you make the most of your data.</p>
+    <p>© ${new Date().getFullYear()} Enrichify Lead System. All rights reserved.</p>
+</div>
+</div>
+        </body>
+        </html>` 
+      };
+  
+      await transporter.sendMail(mailOptions);
+  
+      // 5. Cleanup temporary file
+      fs.unlinkSync(outputPath);
+  
+      return res.status(200).json({
+        message: "File updated successfully",
+        data: {
+          id: updatedFile._id,
+          url: updatedFile.url
+        }
+      });
+  
     } catch (e) {
-        console.error("File upload error:", e);
-       return res.status(500).json({
-            error: "File upload failed",
-            details: e.message
-        });
+      console.error("Update error:", e);
+      
+      // Cleanup if file was created
+      if (fs.existsSync(outputPath)) {
+        fs.unlinkSync(outputPath);
+      }
+  
+      return res.status(500).json({
+        error: "File update failed",
+        details: e.message
+      });
     }
-};
+  };
 
 
 module.exports.sendCode=async(req,res)=>{
