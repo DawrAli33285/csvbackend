@@ -51,7 +51,7 @@ const usermailOptions={
             <p style="margin-bottom: 20px;">Thanks for signing up with Enrichify! Your account has been successfully created, and you're all set to start enriching your data like a pro.</p>
 
             <div style="text-align: center; margin-top: 30px;">
-                <a href="http://18.116.60.175/dashboard" 
+                <a href="http://enrichifyupload.com/dashboard" 
                    style="background-color: #3498db; color: #ffffff; padding: 12px 25px; 
                           text-decoration: none; border-radius: 4px; display: inline-block;
                           font-weight: bold;">

@@ -69,6 +69,10 @@ const usermailOptions={
     <div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
         <!-- Header -->
         <div style="text-align: center; margin-bottom: 30px;">
+           <img src="https://res.cloudinary.com/dbjwbveqn/image/upload/v1748203993/WhatsApp_Image_2024-11-24_at_8.44.26_PM-removebg-preview_cvmrkd.png" 
+                 alt="Enrichify Logo"
+                 style="max-width: 150px; height: auto; display: block; margin: 0 auto 15px auto; border: 0; outline: none; text-decoration: none;"/>
+
             <h1 style="color: #2c3e50; margin-bottom: 10px;">
                
                 Enrichify Lead System
@@ -117,6 +121,10 @@ const usermailOptions={
               <div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
                   <!-- Header -->
                   <div style="text-align: center; margin-bottom: 30px;">
+                     <img src="https://res.cloudinary.com/dbjwbveqn/image/upload/v1748203993/WhatsApp_Image_2024-11-24_at_8.44.26_PM-removebg-preview_cvmrkd.png" 
+                 alt="Enrichify Logo"
+                 style="max-width: 150px; height: auto; display: block; margin: 0 auto 15px auto; border: 0; outline: none; text-decoration: none;"/>
+
                       <h1 style="color: #2c3e50; margin-bottom: 10px;">
                          
                           Enrichify Lead System
@@ -150,7 +158,7 @@ const usermailOptions={
                       </div>
           
                       <div style="text-align: center; margin-top: 30px;">
-                          <a href="http://18.116.60.175/admindashboard" 
+                          <a href="http://enrichifyupload.com/admindashboard" 
                              style="background-color: #3498db; color: #ffffff; padding: 12px 25px; 
                                     text-decoration: none; border-radius: 4px; display: inline-block;
                                     font-weight: bold;">
