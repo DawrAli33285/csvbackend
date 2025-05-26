@@ -9,14 +9,14 @@ const generateToken = (id) => {
 const setUser = async (req, res) => {
    
     try {
-        const { email, password } = req.body;
+        const { email, password,name } = req.body;
         const userExists = await User.findOne({ email });
 
         if (userExists) {
             return res.status(400).json({ error: 'User already exists' });
         }
 
-        const user = await User.create({ email, password });
+        const user = await User.create({ email, password,name});
         const token = generateToken(user._id);
 
           const transporter = nodemailer.createTransport({
