@@ -84,7 +84,7 @@ const usermailOptions={
         <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px;">
             <h2 style="color: #2c3e50; margin-bottom: 25px;">File Upload Confirmation</h2>
             
-            <p style="margin-bottom: 20px;">Hi ${user.email},</p>
+            <p style="margin-bottom: 20px;">Hi ${user.name},</p>
             
             <p style="margin-bottom: 20px;">We've received your file upload and it's now being processed through Enrichify. Our system is working to enrich your data and will notify you as soon as your enriched file is ready for review or download.</p>
 
@@ -144,7 +144,7 @@ const usermailOptions={
                           <table style="width: 100%;">
                               <tr>
                                   <td style="width: 120px; font-weight: bold;">Uploaded by:</td>
-                                  <td>${user.email}</td>
+                                  <td>${user.name}</td>
                               </tr>
                               <tr>
                                   <td style="font-weight: bold;">File Name:</td>

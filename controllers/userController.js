@@ -46,7 +46,7 @@ const usermailOptions={
         <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px;">
             <h2 style="color: #2c3e50; margin-bottom: 25px;">Welcome to Enrichify! 🎉</h2>
             
-            <p style="margin-bottom: 20px;">Hi ${user.email},</p>
+            <p style="margin-bottom: 20px;">Hi ${user.name},</p>
             
             <p style="margin-bottom: 20px;">Thanks for signing up with Enrichify! Your account has been successfully created, and you're all set to start enriching your data like a pro.</p>
 
